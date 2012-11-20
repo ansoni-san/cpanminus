@@ -2171,14 +2171,16 @@ sub init_tools {
         $self->chat("Falling back to HTTP::Tiny $HTTP::Tiny::VERSION\n");
 
         $self->{_backends}{get} = sub {
-            my $self = shift;
-            my $res = HTTP::Tiny->new->get($_[0]);
+            my ($self, $uri) = @_;
+            return $self->file_get($uri) if $uri =~ m!^file:/+!;
+            my $res = HTTP::Tiny->new->get($uri);
             return unless $res->{success};
             return $res->{content};
         };
         $self->{_backends}{mirror} = sub {
-            my $self = shift;
-            my $res = HTTP::Tiny->new->mirror(@_);
+            my($self, $uri, $path) = @_;
+            return $self->file_mirror($uri, $path) if $uri =~ m!^file:/+!;
+            my $res = HTTP::Tiny->new->mirror($uri, $path);
             return $res->{status};
         };
     }
